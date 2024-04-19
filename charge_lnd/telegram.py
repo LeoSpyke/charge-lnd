@@ -1,8 +1,12 @@
 import sys
 import requests
+from enum import Enum
 
 def debug(message):
     sys.stderr.write(message + "\n")
+
+class Emoji(Enum):
+    PARTY = "\U0001F389"
 
 class Telegram:
     bot_token = ""

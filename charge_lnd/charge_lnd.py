@@ -11,7 +11,7 @@ from .lnd import Lnd
 from .policy import Policies
 from .config import Config
 from .electrum import Electrum
-from .telegram import Telegram
+from .telegram import Telegram, Emoji
 import charge_lnd.fmt as fmt
 
 def debug(message):
@@ -35,10 +35,11 @@ def main():
         return True
     
     if arguments.telegram_bot_token and arguments.telegram_chat_id:
-        debug("Telegram bot passed")
+        debug("Telegram configuration passed")
         Telegram.set_bot_token(arguments.telegram_bot_token)
         Telegram.add_chat_id(arguments.telegram_chat_id)
-        
+        if (arguments.telegram_check):
+            Telegram.send_message(f"charge-lnd configured correctly {Emoji.PARTY.value}")            
     
     # few systems are not utf-8, force so we don't bomb out
     sys.stdout.reconfigure(encoding='utf-8')
@@ -135,13 +136,6 @@ def main():
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tg-bot-token",
-                        dest="telegram_bot_token",
-                        help="Telegram bot token")
-    parser.add_argument("--tg-chat-id",
-                        dest="telegram_chat_id",
-                        action="store",
-                        help="Telegram chat to send notifications to (can be specified more than once)")
     parser.add_argument("--lnddir",
                         default="~/.lnd",
                         dest="lnddir",
@@ -173,6 +167,19 @@ def get_argument_parser():
     parser.add_argument("-c", "--config",
                         required=True,
                         help="path to config file")
+    
+    # Telegram
+    parser.add_argument("--tg-bot-token",
+                        dest="telegram_bot_token",
+                        help="Telegram bot token")
+    parser.add_argument("--tg-chat-id",
+                        dest="telegram_chat_id",
+                        action="store",
+                        help="Telegram chat to send notifications to (can be specified more than once)")
+    parser.add_argument("--tg-check",
+                        dest="telegram_check",
+                        action="store_true",
+                        help="Sends a test message to check Telegram connectivity")
     return parser
 
 
