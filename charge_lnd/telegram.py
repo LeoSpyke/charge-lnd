@@ -11,6 +11,9 @@ class Emoji(Enum):
 class Telegram:
     bot_token = ""
     chat_ids = []
+    
+    # buffer
+    updates = []
 
     @staticmethod
     def set_bot_token(token: str):
@@ -28,10 +31,19 @@ class Telegram:
             params = {
                 "text": text,
                 "chat_id": chat_id,
-                "parse_mode": "HTML"
+                "parse_mode": "markdown"
             }
 
             requests.get(
                 f"https://api.telegram.org/bot{Telegram.bot_token}/sendMessage",
                 params=params
             )
+    
+    @staticmethod
+    def add_channel_update(policy, strategy, chan_status, cur_base_fee_msat=None, new_base_fee_msat=None, cur_fee_ppm=None, new_fee_ppm=None):
+        message = policy + ", " + strategy
+        Telegram.send_message(message)
+
+    @staticmethod
+    def send_updates():
+        return

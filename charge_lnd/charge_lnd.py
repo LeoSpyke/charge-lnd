@@ -39,7 +39,8 @@ def main():
         Telegram.set_bot_token(arguments.telegram_bot_token)
         Telegram.add_chat_id(arguments.telegram_chat_id)
         if (arguments.telegram_check):
-            Telegram.send_message(f"charge-lnd configured correctly {Emoji.PARTY.value}")            
+            Telegram.send_message(f"charge-lnd configured correctly {Emoji.PARTY.value}") 
+        return True  
     
     # few systems are not utf-8, force so we don't bomb out
     sys.stdout.reconfigure(encoding='utf-8')
@@ -53,6 +54,7 @@ def main():
 
     my_pubkey = lnd.get_own_pubkey()
 
+    changes = []
     channels = lnd.get_channels()
     for channel in channels:
         policy = policies.get_policy_for(channel)
@@ -79,7 +81,9 @@ def main():
         max_htlc_changed = new_max_htlc is not None and my_policy.max_htlc_msat != new_max_htlc
         time_lock_delta_changed = new_time_lock_delta is not None and my_policy.time_lock_delta != new_time_lock_delta
         is_changed = fee_ppm_changed or base_fee_changed or min_htlc_changed or max_htlc_changed or time_lock_delta_changed
-
+        
+        change = {}
+        
         chan_status_changed = False
         if lnd.min_version(0,13) and channel.active and disable != my_policy.disabled and policy.get('strategy') != 'ignore':
             if not arguments.dry_run:
@@ -94,6 +98,7 @@ def main():
 
         if is_changed and not arguments.dry_run:
             lnd.update_chan_policy(channel.chan_id, new_base_fee_msat, new_fee_ppm, new_min_htlc, new_max_htlc, new_time_lock_delta)
+        
 
         if is_changed or chan_status_changed or arguments.verbose:
             print("  policy:          %s" % fmt.col_hi(policy.name) )
@@ -131,6 +136,9 @@ def main():
                 if time_lock_delta_changed:
                     s = ' ➜ ' + fmt.col_hi(new_time_lock_delta)
                 print("  time_lock_delta: %s%s" % (fmt.col_hi(my_policy.time_lock_delta), s) )
+
+    if arguments.telegram_bot_token and arguments.telegram_chat_id:
+        Telegram.send_updates()
 
     return True
 
@@ -175,7 +183,11 @@ def get_argument_parser():
     parser.add_argument("--tg-chat-id",
                         dest="telegram_chat_id",
                         action="store",
-                        help="Telegram chat to send notifications to (can be specified more than once)")
+                        help="Telegram chat id to send notifications to (required when --tg-bot-token is specified)")
+    parser.add_argument("--tg-throttle",
+                        dest="telegram_throttle",
+                        action="store",
+                        help="(default None, no throttle applied) Maximum number of messages sent at every run. When specified, data are sorted by channel size in descending order")
     parser.add_argument("--tg-check",
                         dest="telegram_check",
                         action="store_true",
