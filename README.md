@@ -31,6 +31,14 @@ optional arguments:
   -v, --verbose         Be more verbose
   -c CONFIG, --config CONFIG
                         path to config file
+  --tg-bot-token TELEGRAM_BOT_TOKEN
+                        Telegram bot token
+  --tg-chat-id TELEGRAM_CHAT_ID
+                        Telegram chat id to send notifications to (required when --tg-bot-token is specified)
+  --tg-throttle TELEGRAM_THROTTLE
+                        (default None, no throttle applied) Maximum number of messages sent at every run. When specified, data are sorted by channel size in
+                        descending order
+  --tg-check            Send a test message to check Telegram connectivity
 ```
 
 All policies are defined using an INI style config file.
