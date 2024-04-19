@@ -11,6 +11,7 @@ from .lnd import Lnd
 from .policy import Policies
 from .config import Config
 from .electrum import Electrum
+from .telegram import Telegram
 import charge_lnd.fmt as fmt
 
 def debug(message):
@@ -32,7 +33,13 @@ def main():
     if arguments.check:
         debug("Configuration file is valid")
         return True
-
+    
+    if arguments.telegram_bot_token and arguments.telegram_chat_id:
+        debug("Telegram bot passed")
+        Telegram.set_bot_token(arguments.telegram_bot_token)
+        Telegram.add_chat_id(arguments.telegram_chat_id)
+        
+    
     # few systems are not utf-8, force so we don't bomb out
     sys.stdout.reconfigure(encoding='utf-8')
 
@@ -128,6 +135,13 @@ def main():
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--tg-bot-token",
+                        dest="telegram_bot_token",
+                        help="Telegram bot token")
+    parser.add_argument("--tg-chat-id",
+                        dest="telegram_chat_id",
+                        action="store",
+                        help="Telegram chat to send notifications to (can be specified more than once)")
     parser.add_argument("--lnddir",
                         default="~/.lnd",
                         dest="lnddir",
